@@ -1,7 +1,7 @@
-getwd(---
-title: "savant_rough"
+---
+title: "AngleVelo_rough"
 author: "Tae Hoon Han"
-date: "March 22, 2017"
+date: ""March 22, 2017"
 output: html_document
 ---
 
