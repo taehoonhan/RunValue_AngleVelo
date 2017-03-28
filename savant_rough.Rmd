@@ -1,0 +1,155 @@
+getwd(---
+title: "savant_rough"
+author: "Tae Hoon Han"
+date: "March 22, 2017"
+output: html_document
+---
+
+
+
+
+```{r}
+setwd("C:/Users/taeho/OneDrive/Documents/GitHub/RunValue_AngleVelo")
+
+
+library(readr)
+library(dplyr)
+library(baseballr)
+library(ggplot2)
+
+
+
+#import data
+dat <- read.csv("savant_2016.csv")
+names(dat)
+```
+
+
+
+```{r}
+batted <- dat %>%filter(!is.na(hit_angle))%>%filter(!is.na(hit_speed))
+
+#exclude bunts,fan interference
+batted <- batted %>% filter(!(events %in%c("Bunt Pop Out","Batter Interference","Bunt Groundout","Sac Bunt","Sac Fly DP","Fan interference")))
+
+
+
+#could be lineout or groundout
+batted <- batted %>% filter(!(events %in%c("Triple Play","Fielders Choice","Fielders Choice Out","Double Play")))
+
+
+
+
+
+
+batted$hit <- batted$events %in% c("Single","Double","Triple","Home Run")
+
+ggplot(batted,aes(hit_speed,hit_angle,colour=hit))+geom_point()+labs(title="hits vs. outs")
+```
+
+```{r}
+batteds <- batted
+levels(batteds$events)[14] <- "Groundout"
+levels(batteds$events)[19] <- "Flyout"
+levels(batteds$events)[22] <- "Flyout"
+levels(batteds$events)[23] <-"Flyout"
+
+ggplot(batteds%>%filter(p_throws=="R"),aes(hit_speed,hit_angle,colour=events))+geom_point()
+
+```
+
+```{r}
+ggplot(batteds%>%filter(p_throws=="L"),aes(hit_speed,hit_angle,colour=events))+geom_point()
+
+```
+
+
+
+
+
+
+
+```{r}
+#fastball
+fast <- batted %>%filter(pitch_type %in% c("FF","FT"))
+
+
+ggplot(fast,aes(hit_speed,hit_angle,colour=events))+geom_point()
+
+```
+
+
+```{r}
+#nonfastball
+nfast <- batted %>%filter(!(pitch_type %in% c("FF","FT")))
+
+
+ggplot(nfast,aes(hit_speed,hit_angle,colour=events))+geom_point()
+
+```
+
+
+
+
+
+```{r}
+dd <- aggregate(hit_angle~hit_speed+events,batted,mean)
+
+ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
+```
+
+
+```{r}
+nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
+
+dd <- aggregate(hit_angle~hit_speed+events,nbat,mean)
+
+ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
+```
+
+
+```{r}
+nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
+
+dd <- aggregate(hit_angle~hit_speed+events,nbat,mean)
+
+ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
+```
+
+
+
+
+```{r}
+nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
+
+dd <- aggregate(hit_angle~hit_speed+events,nbat,mean)
+
+ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
+```
+
+
+
+
+
+
+
+```{r}
+nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
+
+dd <- aggregate(hit_angle~hit_speed+events+home_team,nbat,mean)
+
+ggplot(dd,aes(hit_speed,hit_angle,colour=events,shapes=home_team))+geom_point()+geom_smooth()
+```
+
+
+
+
+
+
+```{r}
+nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
+
+dd <- aggregate(hit_angle~hit_speed+events,nbat,mean)
+
+ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
+```
