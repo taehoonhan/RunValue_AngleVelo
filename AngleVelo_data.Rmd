@@ -1,0 +1,55 @@
+---
+title: "savant_data"
+author: "Tae Hoon Han"
+date: "February 28, 2017"
+output: html_document
+---
+
+
+
+
+
+```{r}
+setwd("C:/Users/taeho/OneDrive/Documents/GitHub/RunValue_AngleVelo")
+
+
+library(readr)
+library(dplyr)
+library(baseballr)
+
+
+
+#742 pitchers in 2016
+pitids <- read.csv("pitids.csv")
+
+```
+
+
+
+
+```{r}
+
+#start/end dates
+start <- as.Date("2016-04-02","%Y-%d-%m")
+end <- as.Date("2016-11-10","%Y-%d-%m")
+
+
+
+
+#scrape pitch-by-pitch data
+tdat <- scrape_statcast_savant_pitcher(start,end,pitids[1,]$pitcherId)
+
+#for 742 pitchers
+for(i in 2:742){
+  tdat <- rbind(tdat,scrape_statcast_savant_pitcher(start,end,pitids[i,]$pitcherId))
+}
+
+
+
+
+#generate csv file
+write.csv(tdat,"savant_2016.csv")
+
+```
+
+
