@@ -1,14 +1,16 @@
 ---
 title: "AngleVelo_rough"
 author: "Tae Hoon Han"
-date: ""March 22, 2017"
-output: html_document
+date: "March 22, 2017"
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 
 
 
-```{r}
+```{r,message=FALSE,echo=F}
 setwd("C:/Users/taeho/OneDrive/Documents/GitHub/RunValue_AngleVelo")
 
 
@@ -21,112 +23,110 @@ library(ggplot2)
 
 #import data
 dat <- read.csv("savant_2016.csv")
-names(dat)
+
 ```
 
 
 
 ```{r}
+
+#all batted balls except bunts, fan interference
 batted <- dat %>%filter(!is.na(hit_angle))%>%filter(!is.na(hit_speed))
-
-#exclude bunts,fan interference
-batted <- batted %>% filter(!(events %in%c("Bunt Pop Out","Batter Interference","Bunt Groundout","Sac Bunt","Sac Fly DP","Fan interference")))
-
-
-
-#could be lineout or groundout
-batted <- batted %>% filter(!(events %in%c("Triple Play","Fielders Choice","Fielders Choice Out","Double Play")))
-
-
-
+batted <- batted %>% filter(!(events %in%c("Bunt Pop Out","Batter Interference","Bunt Groundout","Sac Bunt","Fan interference")))
 
 
 
 batted$hit <- batted$events %in% c("Single","Double","Triple","Home Run")
 
-ggplot(batted,aes(hit_speed,hit_angle,colour=hit))+geom_point()+labs(title="hits vs. outs")
+ggplot(batted,aes(hit_speed,hit_angle,colour=hit))+geom_point()+labs(title="hits vs. others")
 ```
+
+
+
+```{r}
+ggplot(batted,aes(hit_speed,hit_angle,colour=events))+geom_point()+labs(title="all outcomes")
+
+```
+
+
 
 ```{r}
 batteds <- batted
-levels(batteds$events)[14] <- "Groundout"
-levels(batteds$events)[19] <- "Flyout"
-levels(batteds$events)[22] <- "Flyout"
-levels(batteds$events)[23] <-"Flyout"
+batteds$events <- factor(batteds$events)
 
-ggplot(batteds%>%filter(p_throws=="R"),aes(hit_speed,hit_angle,colour=events))+geom_point()
+
+#Grounded Into DP to Groundout
+levels(batteds$events)[8] <- "Groundout"
+#Sac Fly to Flyout
+levels(batteds$events)[12] <- "Flyout"
+#Sac Fly DP to Flyout
+levels(batteds$events)[12] <- "Flyout"
+
+
+
+ggplot(batteds,aes(hit_speed,hit_angle,colour=events))+geom_point()+labs(title = "all outcomes")
 
 ```
+
+
+We can see that the batted balls with launch angle higher than 50 degrees are mostly pop-ups. For the ones with launch angle less than  about 10 degrees are groundouts with solid amount of singles and other rare events such as fields choices anr field errors. High quality batted ball types such as homeruns, doubles, lineouts, and even flyouts have launch angles in between 10 and 30 degrees. Exit velocity of batted balls is what differentiate flyouts from homeruns and doubles. 
+
+
+
+
+
+
 
 ```{r}
-ggplot(batteds%>%filter(p_throws=="L"),aes(hit_speed,hit_angle,colour=events))+geom_point()
+nbatted <- batteds %>% filter(!(events %in% c("Triple Play","Fielders Choice","Fielders Choice Out","Double Play")))
 
+avgs <- aggregate(hit_angle~hit_speed+events,nbatted,mean)
+
+ggplot(avgs,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
 ```
 
+This is a graph showing the average launch angles based on exit velocity grouped by the outcomes of plate appearances. 
+
+We can see from the top that batted balls with extremely high launch angles would be easy pop-ups regardless of the exit velocity.
+
+Then, there are flyouts resulting from launch angles lower than ones of pop-ups, but they still need more exit velocity and lower angles in order to do damages. 
+
+With just lower angles and more velocity, flyout-type batted balls can be turn into homeruns. Ideal range of launch angles for flyout/homeruns seems like between around 20 and 30 degrees. 
+
+When the batted angles are not high enough to launch the balls, batted balls mostly resulted into lineouts (probably to outfieldes), triples, and doubles.
+
+With even lower launch angles, batted balls are less likely to go over infieldrs. Thus, the outcomes for those batted balls would be determine by the courses of batted balls, infields positions, runner speed and etc. 
 
 
+
+__Even if batted balls have same outcomes, they have very different distributions of exit velocity/launch angles__
+
+__For example, singles can be resulting from both batted balls flying over the infield defense and ones go through defenders with low launch angles or low exit velocity.__
 
 
 
 
 ```{r}
 #fastball
-fast <- batted %>%filter(pitch_type %in% c("FF","FT"))
+fast <- batteds %>%filter(pitch_type %in% c("FF","FT"))
 
 
-ggplot(fast,aes(hit_speed,hit_angle,colour=events))+geom_point()
+ggplot(fast,aes(hit_speed,hit_angle,colour=events))+geom_point()+labs(title="Fastballs only")
 
 ```
 
 
 ```{r}
 #nonfastball
-nfast <- batted %>%filter(!(pitch_type %in% c("FF","FT")))
+nfast <- batteds %>%filter(!(pitch_type %in% c("FF","FT")))
 
 
-ggplot(nfast,aes(hit_speed,hit_angle,colour=events))+geom_point()
+ggplot(nfast,aes(hit_speed,hit_angle,colour=events))+geom_point()+labs(title="Non-fastballs only")
 
 ```
 
 
-
-
-
-```{r}
-dd <- aggregate(hit_angle~hit_speed+events,batted,mean)
-
-ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
-```
-
-
-```{r}
-nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
-
-dd <- aggregate(hit_angle~hit_speed+events,nbat,mean)
-
-ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
-```
-
-
-```{r}
-nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
-
-dd <- aggregate(hit_angle~hit_speed+events,nbat,mean)
-
-ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
-```
-
-
-
-
-```{r}
-nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
-
-dd <- aggregate(hit_angle~hit_speed+events,nbat,mean)
-
-ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
-```
-
+Both fastballs and non-fastballs have nearly exact distributions of batted ball outcomes based on launch angle and exit velocity
 
 
 
@@ -134,12 +134,49 @@ ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
 
 
 ```{r}
-nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
+#LHP vs. LHB
+LL <- batteds %>%filter(p_throws == "L") %>% filter(stand=="R")
+ 
 
-dd <- aggregate(hit_angle~hit_speed+events+home_team,nbat,mean)
+ggplot(LL,aes(hit_speed,hit_angle,colour=events))+geom_point()+labs(title="LHP vs. RHB")
 
-ggplot(dd,aes(hit_speed,hit_angle,colour=events,shapes=home_team))+geom_point()+geom_smooth()
 ```
+
+
+```{r}
+#RHP vs. RHB
+RR <- batteds %>%filter(p_throws == "R") %>% filter(stand=="L")
+ 
+
+ggplot(RR,aes(hit_speed,hit_angle,colour=events))+geom_point()+labs(title="RHP vs. LHB")
+
+```
+
+
+Handedness of pitchers and batting stances don't seem to affect the results of outcomes of batted balls based on angles or velocity. In other words, we can expect similar outcomes from the batted balls of same launch angles and exit velocity from different handedness match-ups. 
+
+
+```{r}
+
+#top of the zone, location in zone 11, 12, 1,2,3
+top <- batteds %>%filter(zone %in%c(1,2,3))
+ 
+
+ggplot(top,aes(hit_speed,hit_angle,colour=events))+geom_point()+labs(title="top of inside strike zone")
+
+```
+
+```{r}
+
+#bottom of the strike zone, location in zone 7,8,9,13,14
+bot <- batteds %>%filter(zone %in%c(7,8,9))
+ 
+
+ggplot(bot,aes(hit_speed,hit_angle,colour=events))+geom_point()+labs(title="bottom of inside strike zone")
+
+```
+
+
 
 
 
@@ -147,9 +184,27 @@ ggplot(dd,aes(hit_speed,hit_angle,colour=events,shapes=home_team))+geom_point()+
 
 
 ```{r}
-nbat <- batted %>%filter(!(events %in% c("Pop out","Groundout","Grounded into DP","Field Error")))
+nbatted <- top %>% filter(!(events %in% c("Triple Play","Fielders Choice","Fielders Choice Out","Double Play")))
 
-dd <- aggregate(hit_angle~hit_speed+events,nbat,mean)
+avgs <- aggregate(hit_angle~hit_speed+events,nbatted,mean)
 
-ggplot(dd,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()
+ggplot(avgs,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()+labs(title="average angles, top of strike zone")
 ```
+
+
+
+```{r}
+nbatted <- bot %>% filter(!(events %in% c("Triple Play","Fielders Choice","Fielders Choice Out","Double Play")))
+
+avgs <- aggregate(hit_angle~hit_speed+events,nbatted,mean)
+
+ggplot(avgs,aes(hit_speed,hit_angle,colour=events))+geom_point()+geom_smooth()+labs(title="average angles, bottom of strike zone")
+```
+
+Comparing homeruns that are hit at top of the strike zone and homeruns that are hit at bottom of the strike zone, homwruns with low exit velocity are all from one that are hit at the top of the zone. Homeruns that are hit at the bottom of the zone have minimum of 90 mph while homeruns that are hit at the top of the zone have as slow as 60 mph of exit velocity. 
+
+
+We see singles with slow exit velocity more from the bottom of zone rather than the upper part of the zone. 
+
+Where the pitches were located or where the batted balls begin to fly may affect the outcomes of batted balls, even those with similar ranges of launch angles and exit velocity. 
+
